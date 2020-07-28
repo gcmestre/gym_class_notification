@@ -1,16 +1,10 @@
+# coding: utf-8
+
 import requests
 import configparser
 from bs4 import BeautifulSoup
 
 input_form_url = 'https://pump-spirit.com/my-pump/public_html/login'
-
-config = configparser.ConfigParser()
-config.read('config.cfg')
-
-login_data = {
-    "username": config['credentials']["username"],
-    "password": config['credentials']["password"]
-}
 
 no_class_available_text = "Não há aulas disponíveis para marcação."
 
@@ -18,16 +12,105 @@ club_id = {"faro": 87}
 
 cookies = None
 
-#r = requests.post('https://pump-spirit.com/my-pump/public_html/login', 
-#            data={"username":"goncalo2120@gmail.com",
-#                  "password":"microfone",
-#                  "_token":"Kc0_4PHxVXSn6flM6SQjYxxBkJSdI_uouwv8ON_1m3w"})
-#r = requests.get('https://pump-spirit.com/my-pump/public_html/reservar', auth=('user', 'pass'))
+
+class Pump:
+
+    def __init__(self, *args, **kwargs):
+
+        self._read_config_file()
+
+        self.cookies = None
+
+    def _read_config_file(self):
+        """
+            Opens and reads the config file
+        :return:
+        """
+        self.config = configparser.ConfigParser()
+        self.config.read('config.cfg')
+
+    def _config_get_username(self):
+        print(self.config)
+        return self.config['credentials']['username']
+
+    def _config_get_password(self):
+        return self.config['credentials']['password']
+
+    def login(self):
+        """
+            Login into pump.
+            Sets Cookies
+        :return:
+        """
+
+        login_credentials = self._get_login_credetials()
+        login_form_token = self._get_login_form_token()
+
+        login_data = {
+            "form[username]": login_credentials["username"],
+            "form[password]": login_credentials["password"],
+            "form[_token]": login_form_token
+        }
+
+        # Exepeted formation of the login data
+        # login_form = {
+        #     "form[username]": user email,
+        #     "form[password]": password,
+        #     "form[_token]": Hash of the form token
+        # }
+
+        login_page_response = requests.post('https://pump-spirit.com/my-pump/public_html/login',
+                                            data=login_data,
+                                            cookies=self.cookies)
+
+        return login_page_response
 
 
-# form[username]: goncalo2120@gmail.com
-# form[password]: microfone
-# form[_token]: Kc0_4PHxVXSn6flM6SQjYxxBkJSdI_uouwv8ON_1m3w
+    def _get_login_credetials(self):
+        return {
+            "username": self._config_get_username(),
+            "password": self._config_get_password()
+        }
+
+
+    def _get_login_form_token(self):
+
+        login_page = self.get_login_page()
+        login_page_parsed = self._html_parsing(login_page.text)
+        login_page_input_fields = self._get_input_fields_from_page(login_page_parsed)
+
+        if login_page_input_fields[-1]['id'] != "form__token":
+            print("Exeption('Error getting the login form field token')")
+            #raise Exeption("Error getting the login form field token")
+
+        return login_page_input_fields[-1]['value']
+
+
+    def _html_parsing(self, html_page):
+        return BeautifulSoup(html_page, 'html.parser')
+
+    def _get_input_fields_from_page(selfs, html_page):
+        return html_page.find_all('input')
+
+    def get_login_page(self):
+        """
+            Posts a request of the login page
+        :return:
+        """
+        login_page_response = requests.post('https://pump-spirit.com/my-pump/public_html/login', cookies=self.cookies)
+
+        #TODO check a better way to check if the response as cookies or not
+        if "PHPSESSID" in login_page_response.cookies:
+            self.cookies = login_page_response.cookies
+
+        return login_page_response
+
+    def is_loggedin(self):
+
+        login_page = self.get_login_page()
+
+        return not ('id="form-register"' in login_page.text)
+
 
 
 def is_class_available(html):
@@ -36,47 +119,20 @@ def is_class_available(html):
 def is_logged_in(html):
     return not ('id="form-register"' in html)
 
-def html_parsing (login_page):
-    
-    return BeautifulSoup(login_page, 'html.parser')
 
 def get_input_fields_from_page (html_page):
-    
+
     return html_page.find_all('input')
 
 def get_classes_from_page (html_page):
-    
+
     return html_page.findAll("div", {"class": "mypump-class-wrapper"})
-
-def get_login_page():
-    login_page_response = requests.post('https://pump-spirit.com/my-pump/public_html/login')
-
-    global cookies
-    cookies = login_page_response.cookies
-
-    return login_page_response
 
 def get_reservation_page():
     reservation_page_response = requests.post('https://pump-spirit.com/my-pump/public_html/reservar', cookies=cookies)
     return reservation_page_response
 
-def generate_login_dict():
-    
-    login_page = get_login_page()
 
-    parsed_login_page = html_parsing(login_page.text)
-    
-    login_input_fields = get_input_fields_from_page(parsed_login_page)
-
-    login_form = {
-        "form[username]":login_data['username'],
-        "form[password]":login_data['password'],
-        "form[_token]":login_input_fields[-1]['value']
-    }
-
-    return login_form
-
-    
 def generate_reservation_dict():
 
     reservation_page = get_reservation_page()
@@ -85,7 +141,7 @@ def generate_reservation_dict():
         login()
 
     reservation_login_page = html_parsing(reservation_page.text)
-    
+
     reservation_input_fields = get_input_fields_from_page(reservation_login_page)
 
     reservation_form = {
@@ -112,20 +168,13 @@ def login():
     return submit_login_form(login_form_data)
 
 
-reservation_form_data = generate_reservation_dict()
-club_revervation_status_response = submit_reservation_form(reservation_form_data)
+if __name__ == '__main__':
 
-# with open("club_revervation_status_response.html","w") as file:
-#    file.write(reservation_submit_response.text)
+    pump = Pump()
 
-#with open ("club_revervation_status_response.html", "r") as file:
-#    club_revervation_status_response =  file.read()
+    print(pump.is_loggedin())
 
-#class_status = html_parsing(reservation_submit_response)
+    pump.login()
 
-class_status = html_parsing(club_revervation_status_response.text)
+    print(pump.is_loggedin())
 
-
-available_classes = get_classes_from_page(class_status)
-
-print("Is there any class available? - ", is_class_available(class_status))
