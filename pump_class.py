@@ -35,7 +35,7 @@ class PumpClass:
     def extract_name_and_duration(self):
 
         class_info = self.parsed_class_data.find_all("div", {"class": "mypump-class-title"})[0].text
-        print(class_info)
+        #name, _, duration = class_info.split("\t")
         #name, _, duration = class_info.split("\t")
         name = class_info
         self.set_name(name)
@@ -43,9 +43,10 @@ class PumpClass:
 
     def extract_reservation_token(self):
 
-        self.set_reservation_token(self.parsed_class_data.find_all("div",
-                                                                 {"class": "mypump-class-button"}
-                                                                 )[0].contents[1].attrs['onclick'].split('\'')[1])
+        # self.set_reservation_token(self.parsed_class_data.find_all("div",
+        #                                                          {"class": "mypump-class-button"}
+        #                                                          )[0].contents[1].attrs['onclick'].split('\'')[1])
+        self.set_reservation_token(None)
 
     def __str__(self):
         return self.name + ' ' + self.duration + ' ' + self.hour

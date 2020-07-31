@@ -1,8 +1,35 @@
 
+## Description
 
-Example of available class:
-[
-<div class="mypump-class-wrapper">
+Python script to scrap my gym page every minute and generate a ubuntu notification with are new classes available
+
+## Install
+
+```commandline
+ git clone <this repo>
+
+ pipenv install
+
+```
+
+## Run
+
+* Open the terminal 
+* Go to the project folder (.../pumpgyn)
+* Enter the virtual Env
+```commandline
+  pipenv
+```
+* Run the main python script
+```commandline
+  python main.py
+```
+
+### Examples:
+
+#### HTML Example of available class:
+```html
+[<div class="mypump-class-wrapper">
 	<div class="mypump-class-hour">07:05</div>
 	<!--<div class="mypump-class-title " onclick="openClassMoreInfo('#more-info-1');" >-->
 	<div class="mypump-class-title"> BODY COMBAT
@@ -30,3 +57,5 @@ Example of available class:
 		<a href="javascript:void(0);" onclick="reservationMake('06fae6cb-e2a9-4b92-8e33-e56bb4b23bbb')"> Reservar </a>
 	</div>
 </div>]
+```
+
