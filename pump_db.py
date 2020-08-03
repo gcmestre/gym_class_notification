@@ -70,8 +70,6 @@ class PUMPDB:
         query = """INSERT INTO CLASSES ('timestamp' , 'name', 'hour', 'notified') VALUES (
                             Datetime('now'),'%s', '%s', %s)""" % (pump_class.name, pump_class.hour, notified)
 
-        print(query)
-
         self.execute_query(query)
 
         return self.commit()
