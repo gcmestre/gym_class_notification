@@ -2,9 +2,7 @@ import requests
 import configparser
 from bs4 import BeautifulSoup
 from pump_class import PumpClass
-
-input_form_url = 'https://pump-spirit.com/my-pump/public_html/login'
-
+from os import path
 
 cookies = None
 
@@ -23,7 +21,10 @@ class Pump:
         :return:
         """
         self.config = configparser.ConfigParser()
-        self.config.read('config.cfg')
+
+        project_path = path.dirname(path.abspath(__file__))
+
+        self.config.read(project_path + '/config.cfg')
 
     def _config_get_username(self):
         return self.config['credentials']['username']

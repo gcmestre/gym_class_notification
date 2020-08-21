@@ -36,7 +36,11 @@ class PUMPDB:
 
     def execute_query(self, query):
 
-        return self.cursor.execute(query)
+        try:
+            return self.cursor.execute(query)
+        except Exception as e:
+            print("Error inserting query %s" % query)
+            print("Exception %s" % e)
 
     def fetch_all(self):
 
@@ -74,17 +78,17 @@ class PUMPDB:
 
         return self.commit()
 
-    def check_class_notifcation_last_5_minutes(self, pump_class):
+    def check_class_notification_last_10_minutes(self, pump_class):
         """
             Verify is was send a notification for this class in the past 5 minutes
         :param pump_class:
         :return:
         """
 
-        query = """Select * from classes where 
-                        timestamp > Datetime('now','-5 minutes') and 
+        query = """select * from classes where 
+                        timestamp > Datetime('now','-10 minutes') and 
                         name = '%s' and 
-                        notified = True """ %(pump_class.name)
+                        notified = True""" %(pump_class.name)
 
         self.execute_query(query)
 

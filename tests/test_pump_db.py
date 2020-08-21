@@ -5,13 +5,11 @@ import sqlite3
 import unittest
 import os
 
-test_db = "test_db.db"
-
 class TestPumpDB(unittest.TestCase):
 
     def setUp(self) -> None:
 
-        self.db_conn = sqlite3.connect(test_db)
+        self.db_conn = sqlite3.connect(':memory:')
         self.cursor = self.db_conn.cursor()
 
         self.pump_db = PUMPDB(self.db_conn)
@@ -49,6 +47,6 @@ class TestPumpDB(unittest.TestCase):
 
     def tearDown(self):
 
-        os.remove(test_db)
+        self.db_conn.close()
 
 
